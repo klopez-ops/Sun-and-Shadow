@@ -57,9 +57,7 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.25);
       overflow:hidden;
     }
-    .stage{
-      padding:12px;
-    }
+    .stage{ padding:12px; }
     canvas{
       width:100%;
       height:auto;
@@ -68,7 +66,7 @@
       background: linear-gradient(180deg, #87b7ff 0%, #a6d1ff 35%, #d3f0ff 55%, #9bd46f 56%, #76bd4d 100%);
       border:1px solid rgba(255,255,255,0.22);
       box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10);
-      touch-action:none; /* important for Chromebooks/tablets */
+      touch-action:none;
     }
     .hud{
       display:flex; flex-wrap:wrap; gap:10px;
@@ -110,18 +108,11 @@
       background: linear-gradient(180deg, rgba(122,167,255,0.35), rgba(122,167,255,0.18));
       border-color: rgba(122,167,255,0.55);
     }
-    button.good{
-      background: linear-gradient(180deg, rgba(56,211,159,0.32), rgba(56,211,159,0.14));
-      border-color: rgba(56,211,159,0.55);
-    }
+    button:disabled{opacity:0.55; cursor:not-allowed;}
     button.bad{
       background: linear-gradient(180deg, rgba(255,107,107,0.30), rgba(255,107,107,0.12));
       border-color: rgba(255,107,107,0.55);
     }
-    button:disabled{
-      opacity:0.55; cursor:not-allowed;
-    }
-
     .side{
       padding:14px;
       display:flex;
@@ -134,10 +125,7 @@
       background: rgba(0,0,0,0.24);
       border:1px solid rgba(255,255,255,0.14);
     }
-    .prompt h2{
-      margin:0 0 6px 0;
-      font-size:15px;
-    }
+    .prompt h2{ margin:0 0 6px 0; font-size:15px; }
     .prompt p{
       margin:6px 0 0 0;
       color: var(--muted);
@@ -173,10 +161,7 @@
     .tag.good{color: var(--good); border-color: rgba(56,211,159,0.55); background: rgba(56,211,159,0.10);}
     .tag.bad{color: var(--bad); border-color: rgba(255,107,107,0.55); background: rgba(255,107,107,0.10);}
     .tag.neutral{color: var(--warn); border-color: rgba(255,209,102,0.55); background: rgba(255,209,102,0.10);}
-
-    .small{
-      font-size:12px; color: var(--muted);
-    }
+    .small{ font-size:12px; color: var(--muted); }
     .kbd{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size:12px;
@@ -210,7 +195,7 @@
     </div>
 
     <div class="stage">
-      <canvas id="game" width="960" height="540" aria-label="Interactive sun and shadow game"></canvas>
+      <canvas id="game" width="960" height="540"></canvas>
     </div>
 
     <div class="controls">
@@ -230,7 +215,7 @@
       </div>
 
       <div class="callout" id="helpBox">
-        <b>Remember:</b> The sun rises in the <b>EAST</b> and sets in the <b>WEST</b>.<br />
+        <b>Remember:</b> The sun rises in the <b>EAST (right)</b> and sets in the <b>WEST (left)</b>.<br />
         Shadows point <b>away</b> from the sun.
       </div>
 
@@ -253,15 +238,10 @@
 const CONFIG = {
   QUESTION_COUNT: 10,
   STARTING_LIVES: 3,
-  // How strict is "correct"?
-  // Sun placement: allowed angular error in degrees along the sky arc
   SUN_ANGLE_TOLERANCE_DEG: 18,
-  // Shadow placement: allowed direction error in degrees
   SHADOW_DIR_TOLERANCE_DEG: 20,
-  // Shadow placement: allowed relative length error (0.35 = 35%)
   SHADOW_LEN_TOLERANCE: 0.40,
-  // Difficulty scaling
-  LEVEL_UP_EVERY: 3,   // every N correct answers, level increases
+  LEVEL_UP_EVERY: 3,
   MAX_LEVEL: 6,
 };
 
@@ -293,15 +273,15 @@ function dist(ax, ay, bx, by){ return Math.hypot(ax-bx, ay-by); }
 function rad(deg){ return deg * Math.PI / 180; }
 function deg(rad){ return rad * 180 / Math.PI; }
 function wrap180(d){
-  // Wrap angle difference to [-180, 180]
   let x = ((d + 180) % 360 + 360) % 360 - 180;
   return x;
 }
 function angleBetween(ax, ay, bx, by){
-  return Math.atan2(by - ay, bx - ax); // radians
+  return Math.atan2(by - ay, bx - ax);
 }
 function randChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randRange(a,b){ return a + Math.random()*(b-a); }
+function lerp(a,b,t){ return a + (b-a)*t; }
 
 /* =========================
    Game State
@@ -328,18 +308,7 @@ ui.resetBtn.addEventListener('click', resetGame);
 
 /* =========================
    Scenario Model
-   =========================
-   We generate "time of day" scenarios:
-   - earlyMorning (sun low east)  : long shadow to west
-   - morning (sun mid east)       : medium shadow to west
-   - noon (sun high)              : short shadow under/away a bit
-   - afternoon (sun mid west)     : medium shadow to east
-   - lateAfternoon (sun low west) : long shadow to east
-
-   Two modes:
-   A) Place the Sun (shadow given)
-   B) Place the Shadow (sun given)
-*/
+   ========================= */
 const TIMES = [
   { key:'earlyMorning', label:'Early morning',   sunT:0.12, height:0.25, shadowLen:1.00 },
   { key:'morning',      label:'Morning',         sunT:0.28, height:0.55, shadowLen:0.70 },
@@ -353,60 +322,60 @@ const MODES = [
   { key:'placeShadow', label:'Mode: Place the Shadow' },
 ];
 
-// Sky arc from left horizon to right horizon
+// World + sky arc
 const world = {
   W: canvas.width,
   H: canvas.height,
   groundY: 360,
-  // arc endpoints & center
-  arcLeft:  { x: 140, y: 340 },
-  arcRight: { x: 820, y: 340 },
+  arcLeft:  { x: 140, y: 340 },  // LEFT side of screen
+  arcRight: { x: 820, y: 340 },  // RIGHT side of screen
   arcTop:   { x: 480, y: 75 },
 };
 
+// Quadratic Bezier arc point
 function pointOnSkyArc(t, heightFactor){
-  // Quadratic Bezier: left -> top -> right
-  // heightFactor scales the top control slightly for "sun altitude"
   const p0 = world.arcLeft;
   const p2 = world.arcRight;
   const top = world.arcTop;
-  // Adjust top y based on heightFactor (0..1), lower y = higher sun
   const ctrl = { x: top.x, y: lerp(170, top.y, heightFactor) };
-
   const x = (1-t)*(1-t)*p0.x + 2*(1-t)*t*ctrl.x + t*t*p2.x;
   const y = (1-t)*(1-t)*p0.y + 2*(1-t)*t*ctrl.y + t*t*p2.y;
   return {x,y};
 }
-function lerp(a,b,t){ return a + (b-a)*t; }
 
+/* =========================
+   STAAR-STYLE ORIENTATION
+   =========================
+   On STAAR-style diagrams:
+   - WEST is on the LEFT of the page
+   - EAST is on the RIGHT of the page
+
+   Our internal time parameter (sunT) is still "morning-ish vs afternoon-ish",
+   but we invert it when placing the sun on the arc so:
+   - Morning appears on the RIGHT (EAST)
+   - Afternoon appears on the LEFT (WEST)
+*/
 function makeQuestion(){
   const time = randChoice(TIMES);
-
-  // Level affects randomness + includes more "in-between" times
   const level = state.level;
 
-  // Create "t" and "height" with slight jitter that grows with level
   const jitter = (level-1) * 0.02;
-  const t = clamp(time.sunT + randRange(-jitter, jitter), 0.05, 0.95);
+  const tLocal = clamp(time.sunT + randRange(-jitter, jitter), 0.05, 0.95);
   const height = clamp(time.height + randRange(-jitter*2, jitter*2), 0.15, 1.0);
 
-  // Decide mode (later levels mix more)
+  // Invert t for STAAR orientation (EAST right)
+  const tArc = 1 - tLocal;
+
   const mode = (level <= 2) ? randChoice([MODES[0], MODES[1]]) : randChoice(MODES);
 
-  // Object position on ground
   const obj = { x: randRange(360, 600), y: world.groundY - 5, w: 36, h: 70 };
 
-  // Sun true position
-  const sunTrue = pointOnSkyArc(t, height);
+  const sunTrue = pointOnSkyArc(tArc, height);
 
-  // Compute shadow true direction (from object base, away from sun)
   const base = { x: obj.x, y: world.groundY };
-  const dir = angleBetween(sunTrue.x, sunTrue.y, base.x, base.y); // vector sun->base
-  // Shadow points from base further in same direction (away from sun)
+  const dir = angleBetween(sunTrue.x, sunTrue.y, base.x, base.y); // sun -> base
   const shadowAngle = dir;
 
-  // Shadow length depends on time + some variation (higher sun => shorter shadow)
-  // Use time.shadowLen then scale by level a bit
   const lenBase = time.shadowLen;
   const len = clamp(lenBase + randRange(-0.08, 0.08), 0.18, 1.05);
   const shadowPx = 140 * len;
@@ -418,11 +387,8 @@ function makeQuestion(){
     angle: shadowAngle,
   };
 
-  // Student draggable items (start positions)
-  const sunStart = pointOnSkyArc(0.5, 0.4); // somewhere mid
-  const shadowStart = {
-    x2: base.x + 110, y2: base.y + 15
-  };
+  const sunStart = pointOnSkyArc(0.5, 0.4);
+  const shadowStart = { x2: base.x + 110, y2: base.y + 15 };
 
   return {
     mode,
@@ -431,11 +397,8 @@ function makeQuestion(){
     obj,
     sunTrue,
     shadowTrue,
-    // draggable state
     sun: { x: sunStart.x, y: sunStart.y, r: 22, dragging:false },
     shadow: { x2: shadowStart.x2, y2: shadowStart.y2, dragging:false },
-    // for hints
-    hint: null,
   };
 }
 
@@ -471,7 +434,6 @@ function updateHUD(){
 function updatePrompt(){
   const q = state.current;
   const timeText = q.time.label;
-
   if(q.mode.key === 'placeSun'){
     ui.promptTitle.textContent = 'Place the Sun';
     ui.promptText.innerHTML = `
@@ -492,15 +454,15 @@ function updatePrompt(){
 /* =========================
    Feedback UI
    ========================= */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
 function setFeedback(title, msg, kind){
   const tagClass = kind === 'good' ? 'good' : kind === 'bad' ? 'bad' : 'neutral';
   ui.feedbackBox.innerHTML = `
     <div class="tag ${tagClass}">${escapeHtml(title)}</div>
     <div class="small">${msg}</div>
   `;
-}
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
 /* =========================
@@ -515,17 +477,15 @@ ui.hintBtn.addEventListener('click', () => {
   state.hintUsed = true;
 
   const q = state.current;
-
-  // Provide a conceptual hint, not the exact answer
   let hint;
-  if(q.time.key.includes('Morning')){
-    hint = `Morning = sun is toward <b>EAST (left)</b>. Shadows point toward <b>WEST (right)</b>.`;
-  } else if(q.time.key.includes('Afternoon')){
-    hint = `Afternoon = sun is toward <b>WEST (right)</b>. Shadows point toward <b>EAST (left)</b>.`;
+
+  if(q.time.key === 'morning' || q.time.key === 'earlyMorning'){
+    hint = `Morning = sun is toward <b>EAST (right)</b>. Shadows point toward <b>WEST (left)</b>.`;
+  } else if(q.time.key === 'afternoon' || q.time.key === 'lateAfternoon'){
+    hint = `Afternoon = sun is toward <b>WEST (left)</b>. Shadows point toward <b>EAST (right)</b>.`;
   } else if(q.time.key === 'noon'){
     hint = `Noon = sun is highest. Shadows are <b>short</b> and close to the object.`;
   } else {
-    // early/late: low sun => long shadows
     hint = `Low sun = <b>long</b> shadows. High sun = <b>short</b> shadows.`;
   }
 
@@ -538,12 +498,9 @@ ui.hintBtn.addEventListener('click', () => {
    ========================= */
 ui.checkBtn.addEventListener('click', () => {
   if(state.locked) return;
-
   const q = state.current;
-  const result = (q.mode.key === 'placeSun')
-    ? checkSunAnswer(q)
-    : checkShadowAnswer(q);
 
+  const result = (q.mode.key === 'placeSun') ? checkSunAnswer(q) : checkShadowAnswer(q);
   state.locked = true;
 
   if(result.correct){
@@ -555,8 +512,7 @@ ui.checkBtn.addEventListener('click', () => {
     state.score += points;
     state.streak += 1;
 
-    // level up
-    const correctCountSoFar = getCorrectCountFromScoreApprox(); // simple proxy
+    const correctCountSoFar = Math.floor(state.score / 100);
     if(state.streak > 0 && (correctCountSoFar % CONFIG.LEVEL_UP_EVERY === 0) && state.level < CONFIG.MAX_LEVEL){
       state.level += 1;
     }
@@ -569,43 +525,46 @@ ui.checkBtn.addEventListener('click', () => {
   }
 
   updateHUD();
-  draw(true); // show true answer overlays
+  draw(true);
 
   if(state.lives <= 0){
     setFeedback('Game Over', `You ran out of lives. Your score: <b>${state.score}</b>.<br/>Press <b>Reset Game</b> to play again.`, 'bad');
   }
 });
 
-// A lightweight way to estimate “how many correct” without storing history
-function getCorrectCountFromScoreApprox(){
-  // Very rough, but works for leveling feel
-  return Math.floor(state.score / 100);
+function approximateTFromPoint(x,y,heightFactor){
+  let bestT = 0.5;
+  let bestD = Infinity;
+  const steps = 60;
+  for(let i=0;i<=steps;i++){
+    const t = i/steps;
+    const p = pointOnSkyArc(t, heightFactor);
+    const d = dist(x,y,p.x,p.y);
+    if(d < bestD){ bestD = d; bestT = t; }
+  }
+  return bestT;
 }
 
 function checkSunAnswer(q){
-  // Compare sun angle along arc: use parameter t approximated by nearest point sampling
   const tUser = approximateTFromPoint(q.sun.x, q.sun.y, q.time.height);
   const tTrue = approximateTFromPoint(q.sunTrue.x, q.sunTrue.y, q.time.height);
 
-  // Convert to degrees across 0..1 mapped to 180 degrees
   const angUser = tUser * 180;
   const angTrue = tTrue * 180;
 
   const diff = Math.abs(angUser - angTrue);
   const tol = CONFIG.SUN_ANGLE_TOLERANCE_DEG;
-
   const correct = diff <= tol;
 
   const explain = correct
     ? `Nice! Your sun position matches the shadow direction: shadows point <b>away</b> from the sun.`
     : `Close! The correct sun is <b>${directionWordForT(tTrue)}</b> for <b>${q.time.label}</b>.
-       Remember: sun rises in the <b>EAST (left)</b> and sets in the <b>WEST (right)</b>.`;
+       Remember: sun rises in the <b>EAST (right)</b> and sets in the <b>WEST (left)</b>.`;
 
   return { correct, explain };
 }
 
 function checkShadowAnswer(q){
-  // Compare direction and length of shadow
   const base = q.base;
   const userAngle = angleBetween(base.x, base.y, q.shadow.x2, q.shadow.y2);
   const trueAngle = q.shadowTrue.angle;
@@ -619,7 +578,6 @@ function checkShadowAnswer(q){
 
   const dirOK = d <= CONFIG.SHADOW_DIR_TOLERANCE_DEG;
   const lenOK = lenErr <= CONFIG.SHADOW_LEN_TOLERANCE;
-
   const correct = dirOK && lenOK;
 
   const explain = correct
@@ -637,43 +595,36 @@ function lengthWord(time){
 }
 
 function directionWordForT(t){
-  if(t < 0.38) return 'toward EAST (left)';
-  if(t > 0.62) return 'toward WEST (right)';
+  // STAAR-style: WEST is LEFT (t near 0), EAST is RIGHT (t near 1)
+  if(t < 0.38) return 'toward WEST (left)';
+  if(t > 0.62) return 'toward EAST (right)';
   return 'near the middle (highest around noon)';
 }
-
 function directionWordForShadow(angleRad){
-  // Angle from base to shadow tip
-  // If shadow x2 > base.x => points right = West side
   const q = state.current;
   const base = q.base;
   const tipX = base.x + Math.cos(angleRad);
-  if(tipX > base.x) return 'toward WEST (right)';
-  return 'toward EAST (left)';
-}
-
-/* Approximate t on arc by sampling (fast + simple) */
-function approximateTFromPoint(x,y,heightFactor){
-  let bestT = 0.5;
-  let bestD = Infinity;
-  const steps = 60;
-  for(let i=0;i<=steps;i++){
-    const t = i/steps;
-    const p = pointOnSkyArc(t, heightFactor);
-    const d = dist(x,y,p.x,p.y);
-    if(d < bestD){ bestD = d; bestT = t; }
-  }
-  return bestT;
+  // tip right = EAST, tip left = WEST
+  if(tipX > base.x) return 'toward EAST (right)';
+  return 'toward WEST (left)';
 }
 
 /* =========================
    Drawing
    ========================= */
+function roundRect(x,y,w,h,r){
+  const rr = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+rr, y);
+  ctx.arcTo(x+w, y, x+w, y+h, rr);
+  ctx.arcTo(x+w, y+h, x, y+h, rr);
+  ctx.arcTo(x, y+h, x, y, rr);
+  ctx.arcTo(x, y, x+w, y, rr);
+  ctx.closePath();
+}
 function draw(showSolution=false){
   const q = state.current;
   ctx.clearRect(0,0,world.W,world.H);
-
-  // Sky gradient is CSS on canvas background, so draw foreground elements
   drawHorizon();
   drawCompass();
   drawTrees();
@@ -684,7 +635,6 @@ function draw(showSolution=false){
 }
 
 function drawHorizon(){
-  // subtle ground texture
   ctx.save();
   ctx.fillStyle = "rgba(0,0,0,0.10)";
   for(let i=0;i<20;i++){
@@ -693,7 +643,6 @@ function drawHorizon(){
   }
   ctx.restore();
 
-  // horizon line
   ctx.save();
   ctx.strokeStyle = "rgba(0,0,0,0.22)";
   ctx.lineWidth = 3;
@@ -703,13 +652,11 @@ function drawHorizon(){
   ctx.stroke();
   ctx.restore();
 
-  // sky arc guide (very faint)
   ctx.save();
   ctx.strokeStyle = "rgba(255,255,255,0.28)";
   ctx.lineWidth = 2;
   ctx.setLineDash([6,10]);
   ctx.beginPath();
-  // approximate bezier guide
   const p0 = world.arcLeft, p1 = world.arcTop, p2 = world.arcRight;
   ctx.moveTo(p0.x, p0.y);
   ctx.quadraticCurveTo(p1.x, p1.y, p2.x, p2.y);
@@ -718,22 +665,21 @@ function drawHorizon(){
 }
 
 function drawCompass(){
-  // East/West labels at bottom
+  // STAAR-style labels: WEST left, EAST right
   ctx.save();
   ctx.font = "800 18px system-ui, -apple-system, Segoe UI, Roboto, Arial";
   ctx.fillStyle = "rgba(0,0,0,0.35)";
-  ctx.fillText("EAST", 32, world.groundY + 48);
-  ctx.fillText("WEST", world.W - 88, world.groundY + 48);
+  ctx.fillText("WEST", 32, world.groundY + 48);
+  ctx.fillText("EAST", world.W - 88, world.groundY + 48);
 
   ctx.font = "600 13px system-ui, -apple-system, Segoe UI, Roboto, Arial";
   ctx.fillStyle = "rgba(0,0,0,0.40)";
-  ctx.fillText("Sun rises →", 26, world.groundY + 70);
-  ctx.fillText("← Sun sets", world.W - 126, world.groundY + 70);
+  ctx.fillText("Sun sets →", 26, world.groundY + 70);
+  ctx.fillText("← Sun rises", world.W - 140, world.groundY + 70);
   ctx.restore();
 }
 
 function drawTrees(){
-  // simple outdoor vibe: trees in distance
   ctx.save();
   for(let i=0;i<6;i++){
     const x = 80 + i*160 + (i%2?30:0);
@@ -743,11 +689,9 @@ function drawTrees(){
   ctx.restore();
 }
 function drawTree(x,y,s){
-  // trunk
   ctx.save();
   ctx.fillStyle = "rgba(90,55,25,0.75)";
   ctx.fillRect(x-6*s, y-34*s, 12*s, 34*s);
-  // canopy
   ctx.beginPath();
   ctx.fillStyle = "rgba(25,110,55,0.55)";
   ctx.arc(x, y-44*s, 22*s, 0, Math.PI*2);
@@ -758,33 +702,25 @@ function drawTree(x,y,s){
 }
 
 function drawObject(obj){
-  // a little post / person / stick
   ctx.save();
-  // base shadow under object
   ctx.fillStyle = "rgba(0,0,0,0.18)";
   ctx.beginPath();
   ctx.ellipse(obj.x, world.groundY+8, 20, 8, 0, 0, Math.PI*2);
   ctx.fill();
 
-  // object
   ctx.fillStyle = "rgba(60,50,40,0.9)";
   ctx.fillRect(obj.x - obj.w/2, world.groundY - obj.h, obj.w, obj.h);
 
-  // top highlight
   ctx.fillStyle = "rgba(255,255,255,0.12)";
   ctx.fillRect(obj.x - obj.w/2 + 4, world.groundY - obj.h + 8, 5, obj.h - 14);
-
   ctx.restore();
 }
 
 function drawSun(q, showSolution){
   const mode = q.mode.key;
   const sun = q.sun;
-
-  // If mode is placeShadow, sun is fixed (true position)
   const pos = (mode === 'placeShadow') ? q.sunTrue : {x:sun.x, y:sun.y};
 
-  // sun glow
   ctx.save();
   const grd = ctx.createRadialGradient(pos.x, pos.y, 8, pos.x, pos.y, 42);
   grd.addColorStop(0, "rgba(255,235,130,0.92)");
@@ -794,7 +730,6 @@ function drawSun(q, showSolution){
   ctx.arc(pos.x, pos.y, 42, 0, Math.PI*2);
   ctx.fill();
 
-  // sun disk
   ctx.fillStyle = "rgba(255,235,130,0.98)";
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, 20, 0, Math.PI*2);
@@ -803,7 +738,6 @@ function drawSun(q, showSolution){
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // draggable ring
   if(mode === 'placeSun' && !state.locked){
     ctx.strokeStyle = "rgba(0,0,0,0.28)";
     ctx.lineWidth = 3;
@@ -812,7 +746,6 @@ function drawSun(q, showSolution){
     ctx.stroke();
   }
 
-  // show solution sun if checking
   if(showSolution && mode === 'placeSun'){
     ctx.setLineDash([4,8]);
     ctx.strokeStyle = "rgba(56,211,159,0.9)";
@@ -822,7 +755,6 @@ function drawSun(q, showSolution){
     ctx.stroke();
     ctx.setLineDash([]);
   }
-
   ctx.restore();
 }
 
@@ -830,12 +762,10 @@ function drawShadow(q, showSolution){
   const mode = q.mode.key;
   const base = q.base;
 
-  // If mode is placeSun, shadow is fixed (true shadow)
   const tip = (mode === 'placeSun')
     ? {x:q.shadowTrue.x2, y:q.shadowTrue.y2}
     : {x:q.shadow.x2, y:q.shadow.y2};
 
-  // shadow body (soft)
   ctx.save();
   ctx.strokeStyle = "rgba(0,0,0,0.38)";
   ctx.lineWidth = 18;
@@ -845,7 +775,6 @@ function drawShadow(q, showSolution){
   ctx.lineTo(tip.x, tip.y+6);
   ctx.stroke();
 
-  // shadow outline
   ctx.strokeStyle = "rgba(0,0,0,0.22)";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -853,7 +782,6 @@ function drawShadow(q, showSolution){
   ctx.lineTo(tip.x, tip.y+6);
   ctx.stroke();
 
-  // draggable knob at tip if placing shadow
   if(mode === 'placeShadow' && !state.locked){
     ctx.fillStyle = "rgba(0,0,0,0.45)";
     ctx.beginPath();
@@ -867,7 +795,6 @@ function drawShadow(q, showSolution){
     ctx.stroke();
   }
 
-  // show solution shadow if checking
   if(showSolution && mode === 'placeShadow'){
     const sol = q.shadowTrue;
     ctx.setLineDash([4,8]);
@@ -889,8 +816,7 @@ function drawInstructionsOverlay(q){
   ctx.strokeStyle = "rgba(255,255,255,0.20)";
   ctx.lineWidth = 1;
 
-  // top-left label
-  roundRect(18, 18, 300, 70, 14);
+  roundRect(18, 18, 330, 70, 14);
   ctx.fill();
   ctx.stroke();
 
@@ -902,7 +828,6 @@ function drawInstructionsOverlay(q){
   ctx.fillStyle = "rgba(255,255,255,0.85)";
   ctx.fillText(`Time: ${q.time.label}`, 32, 64);
 
-  // mode hint
   ctx.fillStyle = "rgba(255,255,255,0.78)";
   const modeText = (q.mode.key === 'placeSun')
     ? "Drag the SUN to match the shadow."
@@ -910,17 +835,6 @@ function drawInstructionsOverlay(q){
   ctx.fillText(modeText, 32, 84);
 
   ctx.restore();
-}
-
-function roundRect(x,y,w,h,r){
-  const rr = Math.min(r, w/2, h/2);
-  ctx.beginPath();
-  ctx.moveTo(x+rr, y);
-  ctx.arcTo(x+w, y, x+w, y+h, rr);
-  ctx.arcTo(x+w, y+h, x, y+h, rr);
-  ctx.arcTo(x, y+h, x, y, rr);
-  ctx.arcTo(x, y, x+w, y, rr);
-  ctx.closePath();
 }
 
 /* =========================
@@ -946,12 +860,10 @@ function onDown(evt){
   const q = state.current;
 
   if(q.mode.key === 'placeSun'){
-    // drag sun
     if(dist(p.x,p.y,q.sun.x,q.sun.y) <= q.sun.r + 10){
       q.sun.dragging = true;
     }
   } else {
-    // drag shadow tip
     const tip = {x:q.shadow.x2, y:q.shadow.y2+6};
     if(dist(p.x,p.y,tip.x,tip.y) <= 22){
       q.shadow.dragging = true;
@@ -967,14 +879,12 @@ function onMove(evt){
   const q = state.current;
 
   if(q.sun.dragging){
-    // constrain sun near arc: snap to closest arc point
     const t = approximateTFromPoint(p.x,p.y, q.time.height);
     const pos = pointOnSkyArc(t, q.time.height);
     q.sun.x = pos.x; q.sun.y = pos.y;
     draw();
   }
   if(q.shadow.dragging){
-    // constrain shadow tip to ground-ish region
     q.shadow.x2 = clamp(p.x, 60, world.W-60);
     q.shadow.y2 = clamp(p.y, world.groundY-8, world.groundY+34);
     draw();
@@ -1004,3 +914,4 @@ resetGame();
 </script>
 </body>
 </html>
+
