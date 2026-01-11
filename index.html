@@ -7,15 +7,11 @@
   <style>
     :root{
       --bg:#0b1220;
-      --panel:#111a2e;
-      --panel2:#0f1730;
       --text:#eaf0ff;
       --muted:#b9c6ff;
       --good:#38d39f;
       --bad:#ff6b6b;
       --warn:#ffd166;
-      --accent:#7aa7ff;
-      --shadow:#0a0f1f;
     }
     *{box-sizing:border-box}
     body{
@@ -47,9 +43,7 @@
       max-width:1100px; margin:0 auto; padding:16px;
       display:grid; grid-template-columns: 1.3fr 0.7fr; gap:16px;
     }
-    @media (max-width: 900px){
-      .wrap{grid-template-columns:1fr}
-    }
+    @media (max-width: 900px){ .wrap{grid-template-columns:1fr} }
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
       border:1px solid rgba(255,255,255,0.12);
@@ -59,10 +53,7 @@
     }
     .stage{ padding:12px; }
     canvas{
-      width:100%;
-      height:auto;
-      display:block;
-      border-radius:14px;
+      width:100%; height:auto; display:block; border-radius:14px;
       background: linear-gradient(180deg, #87b7ff 0%, #a6d1ff 35%, #d3f0ff 55%, #9bd46f 56%, #76bd4d 100%);
       border:1px solid rgba(255,255,255,0.22);
       box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10);
@@ -76,12 +67,10 @@
     }
     .hud-left, .hud-right{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
     .stat{
-      padding:8px 10px;
-      border-radius:12px;
+      padding:8px 10px; border-radius:12px;
       background: rgba(0,0,0,0.22);
       border:1px solid rgba(255,255,255,0.14);
-      font-size:13px;
-      color: var(--muted);
+      font-size:13px; color: var(--muted);
     }
     .stat b{color:var(--text)}
     .controls{
@@ -89,6 +78,7 @@
       display:flex; flex-wrap:wrap; gap:10px;
       border-top:1px solid rgba(255,255,255,0.10);
       background: rgba(10,15,31,0.40);
+      align-items:center;
     }
     button{
       appearance:none;
@@ -108,53 +98,34 @@
       background: linear-gradient(180deg, rgba(122,167,255,0.35), rgba(122,167,255,0.18));
       border-color: rgba(122,167,255,0.55);
     }
-    button:disabled{opacity:0.55; cursor:not-allowed;}
     button.bad{
       background: linear-gradient(180deg, rgba(255,107,107,0.30), rgba(255,107,107,0.12));
       border-color: rgba(255,107,107,0.55);
     }
-    .side{
-      padding:14px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
+    button:disabled{opacity:0.55; cursor:not-allowed;}
+    .side{ padding:14px; display:flex; flex-direction:column; gap:12px; }
     .prompt{
-      padding:12px;
-      border-radius:14px;
+      padding:12px; border-radius:14px;
       background: rgba(0,0,0,0.24);
       border:1px solid rgba(255,255,255,0.14);
     }
     .prompt h2{ margin:0 0 6px 0; font-size:15px; }
-    .prompt p{
-      margin:6px 0 0 0;
-      color: var(--muted);
-      font-size:13px;
-      line-height:1.35;
-    }
+    .prompt p{ margin:6px 0 0 0; color: var(--muted); font-size:13px; line-height:1.35; }
     .callout{
-      padding:10px 12px;
-      border-radius:14px;
+      padding:10px 12px; border-radius:14px;
       border:1px dashed rgba(255,255,255,0.20);
       background: rgba(255,255,255,0.06);
-      color: var(--muted);
-      font-size:13px;
-      line-height:1.35;
+      color: var(--muted); font-size:13px; line-height:1.35;
     }
     .feedback{
-      padding:12px;
-      border-radius:14px;
+      padding:12px; border-radius:14px;
       border:1px solid rgba(255,255,255,0.14);
       background: rgba(0,0,0,0.20);
-      min-height:84px;
+      min-height:94px;
     }
     .feedback .tag{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:999px;
-      font-weight:800;
-      font-size:12px;
-      margin-bottom:8px;
+      display:inline-block; padding:4px 10px; border-radius:999px;
+      font-weight:800; font-size:12px; margin-bottom:8px;
       border:1px solid rgba(255,255,255,0.16);
       background: rgba(255,255,255,0.06);
     }
@@ -176,7 +147,7 @@
 </head>
 <body>
 <header>
-  <h1>🌤️ Sun & Shadow Quest <span class="pill">TEKS 5.9 • East/West • Time of Day</span></h1>
+  <h1>🌤️ Sun & Shadow Quest <span class="pill">STAAR Warmup • TEKS 5.9</span></h1>
   <div class="pill" id="modePill">Loading…</div>
 </header>
 
@@ -184,7 +155,7 @@
   <div class="card">
     <div class="hud">
       <div class="hud-left">
-        <div class="stat">Question <b id="qNum">1</b>/<span id="qTotal">10</span></div>
+        <div class="stat">Question <b id="qNum">1</b>/<span id="qTotal">20</span></div>
         <div class="stat">Level <b id="level">1</b></div>
         <div class="stat">Streak <b id="streak">0</b> 🔥</div>
       </div>
@@ -201,9 +172,8 @@
     <div class="controls">
       <button class="primary" id="checkBtn">Check Answer</button>
       <button id="hintBtn">Hint</button>
-      <button id="newBtn">New Question</button>
-      <button class="bad" id="resetBtn">Reset Game</button>
-      <span class="small">Drag with trackpad/mouse. On touchscreen, drag with your finger.</span>
+      <button id="resetBtn" class="bad">Reset Warmup</button>
+      <span class="small">Warmup auto-advances. If it looks unchanged: <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">R</span></span>
     </div>
   </div>
 
@@ -214,7 +184,7 @@
         <p id="promptText">Loading…</p>
       </div>
 
-      <div class="callout" id="helpBox">
+      <div class="callout">
         <b>Remember:</b> The sun rises in the <b>EAST (right)</b> and sets in the <b>WEST (left)</b>.<br />
         Shadows point <b>away</b> from the sun.
       </div>
@@ -225,7 +195,7 @@
       </div>
 
       <div class="callout small">
-        Teacher tip: To edit settings, search for <span class="kbd">CONFIG</span> near the top of the script.
+        Teacher tip: To edit warmup settings, search for <span class="kbd">CONFIG</span> near the top of the script.
       </div>
     </div>
   </div>
@@ -236,12 +206,16 @@
    CONFIG (Teacher Editable)
    ========================= */
 const CONFIG = {
-  QUESTION_COUNT: 10,
+  QUESTION_COUNT: 20,           // ⭐ STAAR Warmup length
   STARTING_LIVES: 3,
+  WARMUP_AUTO_ADVANCE: true,    // ⭐ auto-runs questions
+  AUTO_ADVANCE_DELAY_MS: 950,   // feel free to tweak (700–1200 is nice)
+
   SUN_ANGLE_TOLERANCE_DEG: 18,
   SHADOW_DIR_TOLERANCE_DEG: 20,
   SHADOW_LEN_TOLERANCE: 0.40,
-  LEVEL_UP_EVERY: 3,
+
+  LEVEL_UP_EVERY: 4,
   MAX_LEVEL: 6,
 };
 
@@ -264,13 +238,11 @@ const ui = {
   feedbackBox: document.getElementById('feedbackBox'),
   checkBtn: document.getElementById('checkBtn'),
   hintBtn: document.getElementById('hintBtn'),
-  newBtn: document.getElementById('newBtn'),
   resetBtn: document.getElementById('resetBtn'),
 };
 
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 function dist(ax, ay, bx, by){ return Math.hypot(ax-bx, ay-by); }
-function rad(deg){ return deg * Math.PI / 180; }
 function deg(rad){ return rad * 180 / Math.PI; }
 function wrap180(d){
   let x = ((d + 180) % 360 + 360) % 360 - 180;
@@ -282,29 +254,46 @@ function angleBetween(ax, ay, bx, by){
 function randChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randRange(a,b){ return a + Math.random()*(b-a); }
 function lerp(a,b,t){ return a + (b-a)*t; }
+function pct(n){ return (Math.round(n*10)/10).toFixed(1); }
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function setFeedback(title, msg, kind){
+  const tagClass = kind === 'good' ? 'good' : kind === 'bad' ? 'bad' : 'neutral';
+  ui.feedbackBox.innerHTML = `
+    <div class="tag ${tagClass}">${escapeHtml(title)}</div>
+    <div class="small">${msg}</div>
+  `;
+}
 
 /* =========================
    Game State
    ========================= */
 let state;
 
-function resetGame(){
+function resetWarmup(){
   state = {
     score: 0,
     lives: CONFIG.STARTING_LIVES,
     streak: 0,
+    bestStreak: 0,
     level: 1,
     qIndex: 0,
     current: null,
     locked: false,
     hintUsed: false,
+    correct: 0,
+    attempted: 0,
+    finished: false,
+    autoAdvanceTimer: null,
   };
   ui.qTotal.textContent = String(CONFIG.QUESTION_COUNT);
   loadQuestion();
   updateHUD();
   setFeedback('Ready', 'Drag the sun or shadow, then press Check Answer.', 'neutral');
 }
-ui.resetBtn.addEventListener('click', resetGame);
+ui.resetBtn.addEventListener('click', resetWarmup);
 
 /* =========================
    Scenario Model
@@ -316,23 +305,20 @@ const TIMES = [
   { key:'afternoon',    label:'Afternoon',       sunT:0.72, height:0.55, shadowLen:0.70 },
   { key:'lateAfternoon',label:'Late afternoon',  sunT:0.88, height:0.25, shadowLen:1.00 },
 ];
-
 const MODES = [
   { key:'placeSun',    label:'Mode: Place the Sun' },
   { key:'placeShadow', label:'Mode: Place the Shadow' },
 ];
 
-// World + sky arc
 const world = {
   W: canvas.width,
   H: canvas.height,
   groundY: 360,
-  arcLeft:  { x: 140, y: 340 },  // LEFT side of screen
-  arcRight: { x: 820, y: 340 },  // RIGHT side of screen
+  arcLeft:  { x: 140, y: 340 },  // LEFT side of screen = WEST
+  arcRight: { x: 820, y: 340 },  // RIGHT side of screen = EAST
   arcTop:   { x: 480, y: 75 },
 };
 
-// Quadratic Bezier arc point
 function pointOnSkyArc(t, heightFactor){
   const p0 = world.arcLeft;
   const p2 = world.arcRight;
@@ -343,17 +329,9 @@ function pointOnSkyArc(t, heightFactor){
   return {x,y};
 }
 
-/* =========================
-   STAAR-STYLE ORIENTATION
-   =========================
-   On STAAR-style diagrams:
-   - WEST is on the LEFT of the page
-   - EAST is on the RIGHT of the page
-
-   Our internal time parameter (sunT) is still "morning-ish vs afternoon-ish",
-   but we invert it when placing the sun on the arc so:
-   - Morning appears on the RIGHT (EAST)
-   - Afternoon appears on the LEFT (WEST)
+/* STAAR-style orientation:
+   WEST is on the LEFT, EAST is on the RIGHT.
+   So morning should appear on the RIGHT (EAST) => invert t when placing on the arc.
 */
 function makeQuestion(){
   const time = randChoice(TIMES);
@@ -362,17 +340,14 @@ function makeQuestion(){
   const jitter = (level-1) * 0.02;
   const tLocal = clamp(time.sunT + randRange(-jitter, jitter), 0.05, 0.95);
   const height = clamp(time.height + randRange(-jitter*2, jitter*2), 0.15, 1.0);
-
-  // Invert t for STAAR orientation (EAST right)
   const tArc = 1 - tLocal;
 
   const mode = (level <= 2) ? randChoice([MODES[0], MODES[1]]) : randChoice(MODES);
-
-  const obj = { x: randRange(360, 600), y: world.groundY - 5, w: 36, h: 70 };
-
-  const sunTrue = pointOnSkyArc(tArc, height);
+  const obj = { x: randRange(360, 600), w: 36, h: 70 };
 
   const base = { x: obj.x, y: world.groundY };
+  const sunTrue = pointOnSkyArc(tArc, height);
+
   const dir = angleBetween(sunTrue.x, sunTrue.y, base.x, base.y); // sun -> base
   const shadowAngle = dir;
 
@@ -391,12 +366,8 @@ function makeQuestion(){
   const shadowStart = { x2: base.x + 110, y2: base.y + 15 };
 
   return {
-    mode,
-    time,
-    base,
-    obj,
-    sunTrue,
-    shadowTrue,
+    mode, time, base, obj,
+    sunTrue, shadowTrue,
     sun: { x: sunStart.x, y: sunStart.y, r: 22, dragging:false },
     shadow: { x2: shadowStart.x2, y2: shadowStart.y2, dragging:false },
   };
@@ -412,22 +383,13 @@ function loadQuestion(){
   draw();
 }
 
-ui.newBtn.addEventListener('click', () => {
-  if(state.qIndex >= CONFIG.QUESTION_COUNT-1){
-    setFeedback('All done!', 'You finished the set. Press Reset Game to play again.', 'neutral');
-    return;
-  }
-  state.qIndex++;
-  loadQuestion();
-  setFeedback('New Question', 'Drag the sun or shadow, then press Check Answer.', 'neutral');
-});
-
 function updateHUD(){
+  ui.qNum.textContent = String(state.qIndex + 1);
+  ui.qTotal.textContent = String(CONFIG.QUESTION_COUNT);
   ui.score.textContent = String(state.score);
   ui.lives.textContent = String(state.lives);
   ui.streak.textContent = String(state.streak);
   ui.level.textContent = String(state.level);
-  ui.qNum.textContent = String(state.qIndex + 1);
   ui.modePill.textContent = state.current ? state.current.mode.label : '—';
 }
 
@@ -452,24 +414,10 @@ function updatePrompt(){
 }
 
 /* =========================
-   Feedback UI
-   ========================= */
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
-function setFeedback(title, msg, kind){
-  const tagClass = kind === 'good' ? 'good' : kind === 'bad' ? 'bad' : 'neutral';
-  ui.feedbackBox.innerHTML = `
-    <div class="tag ${tagClass}">${escapeHtml(title)}</div>
-    <div class="small">${msg}</div>
-  `;
-}
-
-/* =========================
-   Hint System
+   Hint
    ========================= */
 ui.hintBtn.addEventListener('click', () => {
-  if(state.locked) return;
+  if(state.locked || state.finished) return;
   if(state.hintUsed){
     setFeedback('Hint already used', 'Try dragging again and then check your answer.', 'neutral');
     return;
@@ -478,32 +426,31 @@ ui.hintBtn.addEventListener('click', () => {
 
   const q = state.current;
   let hint;
-
   if(q.time.key === 'morning' || q.time.key === 'earlyMorning'){
     hint = `Morning = sun is toward <b>EAST (right)</b>. Shadows point toward <b>WEST (left)</b>.`;
   } else if(q.time.key === 'afternoon' || q.time.key === 'lateAfternoon'){
     hint = `Afternoon = sun is toward <b>WEST (left)</b>. Shadows point toward <b>EAST (right)</b>.`;
-  } else if(q.time.key === 'noon'){
-    hint = `Noon = sun is highest. Shadows are <b>short</b> and close to the object.`;
   } else {
-    hint = `Low sun = <b>long</b> shadows. High sun = <b>short</b> shadows.`;
+    hint = `Noon = sun is highest. Shadows are <b>short</b> and close to the object.`;
   }
-
   setFeedback('Hint', hint, 'neutral');
   draw();
 });
 
 /* =========================
-   Checking Answers + Scoring
+   Checking + Warmup flow
    ========================= */
 ui.checkBtn.addEventListener('click', () => {
-  if(state.locked) return;
-  const q = state.current;
+  if(state.locked || state.finished || state.lives<=0) return;
 
+  const q = state.current;
   const result = (q.mode.key === 'placeSun') ? checkSunAnswer(q) : checkShadowAnswer(q);
+
   state.locked = true;
+  state.attempted += 1;
 
   if(result.correct){
+    state.correct += 1;
     const basePoints = 100;
     const streakBonus = Math.min(50, state.streak * 10);
     const hintPenalty = state.hintUsed ? 25 : 0;
@@ -511,8 +458,9 @@ ui.checkBtn.addEventListener('click', () => {
 
     state.score += points;
     state.streak += 1;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
 
-    const correctCountSoFar = Math.floor(state.score / 100);
+    const correctCountSoFar = state.correct;
     if(state.streak > 0 && (correctCountSoFar % CONFIG.LEVEL_UP_EVERY === 0) && state.level < CONFIG.MAX_LEVEL){
       state.level += 1;
     }
@@ -521,17 +469,53 @@ ui.checkBtn.addEventListener('click', () => {
   } else {
     state.lives -= 1;
     state.streak = 0;
-    setFeedback('Not yet ❌', `${result.explain}<br/><br/>Try the next one!`, 'bad');
+    setFeedback('Not yet ❌', `${result.explain}<br/><br/>Keep going!`, 'bad');
   }
 
   updateHUD();
   draw(true);
 
   if(state.lives <= 0){
-    setFeedback('Game Over', `You ran out of lives. Your score: <b>${state.score}</b>.<br/>Press <b>Reset Game</b> to play again.`, 'bad');
+    finishWarmup('Game Over', 'You ran out of lives.');
+    return;
+  }
+
+  // If last question, finish; otherwise auto-advance
+  if(state.qIndex >= CONFIG.QUESTION_COUNT - 1){
+    finishWarmup('Warmup Complete', 'You finished all 20 questions!');
+    return;
+  }
+
+  if(CONFIG.WARMUP_AUTO_ADVANCE){
+    clearTimeout(state.autoAdvanceTimer);
+    state.autoAdvanceTimer = setTimeout(() => {
+      state.qIndex += 1;
+      loadQuestion();
+      setFeedback('Next Question', 'Drag the sun or shadow, then press Check Answer.', 'neutral');
+    }, CONFIG.AUTO_ADVANCE_DELAY_MS);
   }
 });
 
+function finishWarmup(title, subtitle){
+  state.finished = true;
+  ui.checkBtn.disabled = true;
+  ui.hintBtn.disabled = true;
+
+  const acc = state.attempted > 0 ? (state.correct / state.attempted) * 100 : 0;
+  setFeedback(
+    title,
+    `${subtitle}<br/><br/>
+     <b>Score:</b> ${state.score}<br/>
+     <b>Correct:</b> ${state.correct} / ${state.attempted} (${pct(acc)}%)<br/>
+     <b>Best streak:</b> ${state.bestStreak}<br/><br/>
+     Press <b>Reset Warmup</b> to try again.`,
+    'good'
+  );
+}
+
+/* =========================
+   Answer checking helpers
+   ========================= */
 function approximateTFromPoint(x,y,heightFactor){
   let bestT = 0.5;
   let bestD = Infinity;
@@ -553,13 +537,11 @@ function checkSunAnswer(q){
   const angTrue = tTrue * 180;
 
   const diff = Math.abs(angUser - angTrue);
-  const tol = CONFIG.SUN_ANGLE_TOLERANCE_DEG;
-  const correct = diff <= tol;
+  const correct = diff <= CONFIG.SUN_ANGLE_TOLERANCE_DEG;
 
   const explain = correct
-    ? `Nice! Your sun position matches the shadow direction: shadows point <b>away</b> from the sun.`
-    : `Close! The correct sun is <b>${directionWordForT(tTrue)}</b> for <b>${q.time.label}</b>.
-       Remember: sun rises in the <b>EAST (right)</b> and sets in the <b>WEST (left)</b>.`;
+    ? `Nice! Shadows point <b>away</b> from the sun.`
+    : `Remember: sun rises in the <b>EAST (right)</b> and sets in the <b>WEST (left)</b>.`;
 
   return { correct, explain };
 }
@@ -578,35 +560,14 @@ function checkShadowAnswer(q){
 
   const dirOK = d <= CONFIG.SHADOW_DIR_TOLERANCE_DEG;
   const lenOK = lenErr <= CONFIG.SHADOW_LEN_TOLERANCE;
+
   const correct = dirOK && lenOK;
 
   const explain = correct
-    ? `Yes! Your shadow points <b>away</b> from the sun and the length fits the sun’s height in the sky.`
-    : `Almost! The shadow should point <b>${directionWordForShadow(trueAngle)}</b> and be
-       <b>${lengthWord(q.time)}</b> for <b>${q.time.label}</b>.`;
+    ? `Yes! Shadow points <b>away</b> from the sun.`
+    : `Check direction: shadows point <b>away</b> from the sun. Noon shadows are usually <b>short</b>.`;
 
   return { correct, explain };
-}
-
-function lengthWord(time){
-  if(time.key === 'noon') return 'short';
-  if(time.key === 'earlyMorning' || time.key === 'lateAfternoon') return 'long';
-  return 'medium';
-}
-
-function directionWordForT(t){
-  // STAAR-style: WEST is LEFT (t near 0), EAST is RIGHT (t near 1)
-  if(t < 0.38) return 'toward WEST (left)';
-  if(t > 0.62) return 'toward EAST (right)';
-  return 'near the middle (highest around noon)';
-}
-function directionWordForShadow(angleRad){
-  const q = state.current;
-  const base = q.base;
-  const tipX = base.x + Math.cos(angleRad);
-  // tip right = EAST, tip left = WEST
-  if(tipX > base.x) return 'toward EAST (right)';
-  return 'toward WEST (left)';
 }
 
 /* =========================
@@ -622,6 +583,7 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x, y, x+w, y, rr);
   ctx.closePath();
 }
+
 function draw(showSolution=false){
   const q = state.current;
   ctx.clearRect(0,0,world.W,world.H);
@@ -631,7 +593,7 @@ function draw(showSolution=false){
   drawObject(q.obj);
   drawShadow(q, showSolution);
   drawSun(q, showSolution);
-  drawInstructionsOverlay(q);
+  drawOverlay(q);
 }
 
 function drawHorizon(){
@@ -665,7 +627,6 @@ function drawHorizon(){
 }
 
 function drawCompass(){
-  // STAAR-style labels: WEST left, EAST right
   ctx.save();
   ctx.font = "800 18px system-ui, -apple-system, Segoe UI, Roboto, Arial";
   ctx.fillStyle = "rgba(0,0,0,0.35)";
@@ -810,19 +771,19 @@ function drawShadow(q, showSolution){
   ctx.restore();
 }
 
-function drawInstructionsOverlay(q){
+function drawOverlay(q){
   ctx.save();
   ctx.fillStyle = "rgba(0,0,0,0.28)";
   ctx.strokeStyle = "rgba(255,255,255,0.20)";
   ctx.lineWidth = 1;
 
-  roundRect(18, 18, 330, 70, 14);
+  roundRect(18, 18, 340, 70, 14);
   ctx.fill();
   ctx.stroke();
 
   ctx.fillStyle = "rgba(255,255,255,0.92)";
   ctx.font = "800 16px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.fillText("Outdoor Shadow Challenge", 32, 44);
+  ctx.fillText("STAAR Warmup: Sun & Shadows", 32, 44);
 
   ctx.font = "600 13px system-ui, -apple-system, Segoe UI, Roboto, Arial";
   ctx.fillStyle = "rgba(255,255,255,0.85)";
@@ -838,7 +799,7 @@ function drawInstructionsOverlay(q){
 }
 
 /* =========================
-   Drag + Drop Controls
+   Drag + Drop
    ========================= */
 let pointer = { down:false, x:0, y:0 };
 
@@ -852,32 +813,24 @@ function getCanvasPos(evt){
 }
 
 function onDown(evt){
-  if(state.locked || state.lives<=0) return;
+  if(state.locked || state.finished || state.lives<=0) return;
   pointer.down = true;
   const p = getCanvasPos(evt);
-  pointer.x = p.x; pointer.y = p.y;
 
   const q = state.current;
-
   if(q.mode.key === 'placeSun'){
-    if(dist(p.x,p.y,q.sun.x,q.sun.y) <= q.sun.r + 10){
-      q.sun.dragging = true;
-    }
+    if(dist(p.x,p.y,q.sun.x,q.sun.y) <= q.sun.r + 10){ q.sun.dragging = true; }
   } else {
     const tip = {x:q.shadow.x2, y:q.shadow.y2+6};
-    if(dist(p.x,p.y,tip.x,tip.y) <= 22){
-      q.shadow.dragging = true;
-    }
+    if(dist(p.x,p.y,tip.x,tip.y) <= 22){ q.shadow.dragging = true; }
   }
   evt.preventDefault();
 }
 function onMove(evt){
   if(!pointer.down) return;
   const p = getCanvasPos(evt);
-  pointer.x = p.x; pointer.y = p.y;
 
   const q = state.current;
-
   if(q.sun.dragging){
     const t = approximateTFromPoint(p.x,p.y, q.time.height);
     const pos = pointOnSkyArc(t, q.time.height);
@@ -902,7 +855,6 @@ function onUp(evt){
 canvas.addEventListener('mousedown', onDown);
 canvas.addEventListener('mousemove', onMove);
 window.addEventListener('mouseup', onUp);
-
 canvas.addEventListener('touchstart', onDown, {passive:false});
 canvas.addEventListener('touchmove', onMove, {passive:false});
 window.addEventListener('touchend', onUp, {passive:false});
@@ -910,8 +862,7 @@ window.addEventListener('touchend', onUp, {passive:false});
 /* =========================
    Init
    ========================= */
-resetGame();
+resetWarmup();
 </script>
 </body>
 </html>
-
